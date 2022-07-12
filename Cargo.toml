@@ -1,0 +1,13 @@
+[package]
+name = "h4"
+version = "0.1.0"
+edition = "2021"
+reqwest = "0.11.11"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = {version= "0.11.11", features= ["blocking"]}
+anyhow = "1.0.58"
+clap = "2.33.3"
+colored = "2.0.0"
