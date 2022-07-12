@@ -2,29 +2,27 @@ use anyhow::Result;
 
 // TODO: use several analysis tactics
 /// Detect if a server is running Apache
-pub fn is_apache(address: &str) -> Result<bool> {
-    let mut formated_address_with_slash = String::from("");
-    let mut formated_address_without_slash = String::from("");
+pub fn is_apache(url: &str) -> Result<bool> {
+    let mut address_with_normal_slash = String::from("");
+    let mut address_with_url_encoded_slash = String::from("");
 
     // Detect apache by checking how the URL encoded forward slash
     // characters are treated. Only works when the AllowEncodedSlashes
     // is enabled (it is enabled by default)
-    if address.ends_with('/') {
-        formated_address_with_slash = format!("{}/", address);
+    if address_with_normal_slash.ends_with('/') {
+        address_with_normal_slash = format!("{}/", url);
+        address_with_url_encoded_slash = format!("{}%2f", url);
     } else {
-        formated_address_with_slash = format!("{}//", address);
+        address_with_normal_slash = format!("{}//", url);
+        address_with_url_encoded_slash = format!("{}/%2f", url);
     }
 
-    if address.ends_with('/') {
-        formated_address_without_slash = format!("{}%2f", address);
-    } else {
-        formated_address_without_slash = format!("{}/%2f", address);
-    }
+    let normal_slash_body = reqwest::blocking::get(address_with_normal_slash)?;
+    let url_encoded_body = reqwest::blocking::get(address_with_url_encoded_slash)?;
 
-    let body = reqwest::blocking::get(formated_address_with_slash)?;
-    let body2 = reqwest::blocking::get(formated_address_without_slash)?;
-
-    if body.status().is_success() && body2.status() == reqwest::StatusCode::NOT_FOUND {
+    if normal_slash_body.status().is_success()
+        && url_encoded_body.status() == reqwest::StatusCode::NOT_FOUND
+    {
         Ok(true)
     } else {
         Ok(false)
